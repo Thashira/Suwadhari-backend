@@ -56,17 +56,17 @@ async function startServer() {
     console.log('✅ Database connected successfully!');
 
     // Test a simple query (do not crash if tables are missing)
-    try {
-      //const userCount = await prisma.login.count();
-      //console.log(`✅ Database query successful! Users in database: ${userCount}`);
-    } catch (queryError) {
-      if (queryError.code === 'P2021') {
-        console.log('⚠️  Database connected but tables are missing.');
-        console.log('   Run: npx prisma migrate dev --name init');
-      } else {
-        throw queryError;
-      }
-    }
+    // try {
+    //   //const userCount = await prisma.login.count();
+    //   //console.log(`✅ Database query successful! Users in database: ${userCount}`);
+    // } catch (queryError) {
+    //   if (queryError.code === 'P2021') {
+    //     console.log('⚠️  Database connected but tables are missing.');
+    //     console.log('   Run: npx prisma migrate dev --name init');
+    //   } else {
+    //     throw queryError;
+    //   }
+    // }
 
     // Start the server
     app.listen(PORT, () => {
