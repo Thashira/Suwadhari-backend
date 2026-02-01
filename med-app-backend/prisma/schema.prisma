@@ -12,20 +12,29 @@ datasource db {
 
 // User Model - for authentication
 model User {
-  id        Int     @id @default(autoincrement())
-  email     String  @unique @db.VarChar(255)
-  password  String  @db.VarChar(255)
-  name      String  @db.VarChar(255)
-  role      String  @default("user") @db.VarChar(50)
-  isActive  Boolean @default(true)
-  lastLogin DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          Int      @id @default(autoincrement())
+  physicianId String?  @unique @db.VarChar(50) @map("physician_id")
+  name        String   @db.VarChar(255)
+  birthDay    DateTime? @map("birth_day")
+  nic         String?  @unique @db.VarChar(20)
+  username    String?  @unique @db.VarChar(100)
+  addressId   Int?     @map("address_id")
+  email       String   @unique @db.VarChar(255)
+  tel         String?  @db.VarChar(20)
+  password    String   @db.VarChar(255)
+  role        String   @default("user") @db.VarChar(50)
+  isActive    Boolean  @default(true)
+  lastLogin   DateTime? @map("last_login")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
   // Relations
   medicalRecords MedicalRecord[]
 
   @@index([email])
+  @@index([username])
+  @@index([nic])
+  @@index([physicianId])
 }
 
 // Clinic Model - clinic information

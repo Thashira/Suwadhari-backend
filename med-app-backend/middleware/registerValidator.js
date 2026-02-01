@@ -6,11 +6,23 @@ const prisma = new PrismaClient();
 
 /**
  * Validates registration data before creating new user in online database
- * Expected body: { email, password, confirmPassword, name }
+ * Expected body: { email, password, confirmPassword, name, physicianId, birthDay, nic, username, addressId, tel, role }
  */
 const registerValidator = async (req, res, next) => {
   try {
-    const { email, password, confirmPassword, name } = req.body;
+    const { 
+      email, 
+      password, 
+      confirmPassword, 
+      name,
+      physicianId,
+      birthDay,
+      nic,
+      username,
+      addressId,
+      tel,
+      role 
+    } = req.body;
 
     // Validate required fields
     if (!email || !password || !confirmPassword || !name) {
@@ -47,17 +59,62 @@ const registerValidator = async (req, res, next) => {
 
     console.log(`Attempting registration for email: ${email}`);
 
-    // Query: Check if user already exists in online database
-    const existingUser = await prisma.user.findUnique({
+    // Query: Check if user already exists in online database by email
+    const existingUserByEmail = await prisma.user.findUnique({
       where: { email },
     });
 
-    if (existingUser) {
-      console.log(`User already exists: ${email}`);
+    if (existingUserByEmail) {
+      console.log(`User already exists with email: ${email}`);
       return res.status(409).json({
         success: false,
         message: 'User with this email already exists',
       });
+    }
+
+    // Check if username already exists (if provided)
+    if (username) {
+      const existingUserByUsername = await prisma.user.findUnique({
+        where: { username },
+      });
+
+      if (existingUserByUsername) {
+        console.log(`User already exists with username: ${username}`);
+        return res.status(409).json({
+          success: false,
+          message: 'Username already taken',
+        });
+      }
+    }
+
+    // Check if NIC already exists (if provided)
+    if (nic) {
+      const existingUserByNic = await prisma.user.findUnique({
+        where: { nic },
+      });
+
+      if (existingUserByNic) {
+        console.log(`User already exists with NIC: ${nic}`);
+        return res.status(409).json({
+          success: false,
+          message: 'User with this NIC already exists',
+        });
+      }
+    }
+
+    // Check if physicianId already exists (if provided)
+    if (physicianId) {
+      const existingUserByPhysicianId = await prisma.user.findUnique({
+        where: { physicianId },
+      });
+
+      if (existingUserByPhysicianId) {
+        console.log(`User already exists with Physician ID: ${physicianId}`);
+        return res.status(409).json({
+          success: false,
+          message: 'Physician ID already registered',
+        });
+      }
     }
 
     // Hash password with bcrypt
@@ -70,7 +127,13 @@ const registerValidator = async (req, res, next) => {
       email,
       password: hashedPassword,
       name,
-      role: 'user',  // Default role
+      physicianId: physicianId || null,
+      birthDay: birthDay ? new Date(birthDay) : null,
+      nic: nic || null,
+      username: username || null,
+      addressId: addressId ? parseInt(addressId) : null,
+      tel: tel || null,
+      role: role || 'user',  // Default role
     };
 
     next();

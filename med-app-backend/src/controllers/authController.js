@@ -6,6 +6,7 @@ const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
 
+//doctor register
 // Register User (uses registerValidator middleware)
 const register = async (req, res) => {
   try {
@@ -19,15 +20,28 @@ const register = async (req, res) => {
         email: newUser.email,
         password: newUser.password,
         name: newUser.name,
+        physicianId: newUser.physicianId,
+        birthDay: newUser.birthDay,
+        nic: newUser.nic,
+        username: newUser.username,
+        addressId: newUser.addressId,
+        tel: newUser.tel,
         role: newUser.role,
         isActive: true,
       },
       select: {
         id: true,
-        email: true,
+        physicianId: true,
         name: true,
+        birthDay: true,
+        nic: true,
+        username: true,
+        addressId: true,
+        email: true,
+        tel: true,
         role: true,
         createdAt: true,
+        updatedAt: true,
       },
     });
 
@@ -61,9 +75,17 @@ const login = async (req, res) => {
         token,
         user: {
           id: user.id,
-          email: user.email,
+          physicianId: user.physicianId,
           name: user.name,
+          birthDay: user.birthDay,
+          nic: user.nic,
+          username: user.username,
+          addressId: user.addressId,
+          email: user.email,
+          tel: user.tel,
           role: user.role,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
         },
       },
     });

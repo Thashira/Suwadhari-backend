@@ -2,10 +2,11 @@
   "name": "med-app-backend",
   "version": "1.0.0",
   "description": "Medical Application Backend API",
-  "main": "src/server.js",
+  "main": "src/routers/server.js",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
+    "start": "node src/routers/server.js",
+    "dev": "nodemon src/routers/server.js",
+    "test-db": "node config/testConnection.js"
   },
   "keywords": ["medical", "healthcare", "api"],
   "author": "",
