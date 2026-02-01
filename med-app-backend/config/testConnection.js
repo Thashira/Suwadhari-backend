@@ -16,7 +16,7 @@ async function testConnection() {
 
     // Test 2: Run a simple query
     console.log('\n🔄 Testing database query...');
-    const userCount = await prisma.user.count();
+    const userCount = await prisma.login.count();
     console.log(`✅ Query successful! Current users in database: ${userCount}`);
 
     // Test 3: Check database info
