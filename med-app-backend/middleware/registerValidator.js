@@ -133,42 +133,12 @@ const registerValidator = async (req, res, next) => {
       username: username || null,
       addressId: addressId ? parseInt(addressId) : null,
       tel: tel || null,
-      role: role || 'user',  // Default role
+      role: role || 'user',
     };
 
     next();
   } catch (error) {
     console.error('Registration validation error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Registration validation error',
-      error: error.message,
-    });
-  }
-};
-
-module.exports = registerValidator;
-
-    if (existingUser) {
-      return res.status(409).json({
-        success: false,
-        message: 'User with this email already exists',
-      });
-    }
-
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Attach sanitized data to request
-    req.newUser = {
-      email,
-      password: hashedPassword,
-      name,
-      role: 'user',  // Default role
-    };
-
-    next();
-  } catch (error) {
     res.status(500).json({
       success: false,
       message: 'Registration validation error',
