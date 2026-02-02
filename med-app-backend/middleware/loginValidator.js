@@ -5,40 +5,46 @@ const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
 
+// Ensure JWT secret and expiration have safe fallbacks
+const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_change_me';
+const JWT_EXPIRATION = process.env.JWT_EXPIRATION || '7d';
+if (!process.env.JWT_SECRET) {
+  console.warn('Warning: JWT_SECRET not set. Using development fallback secret.');
+}
+
 /**
  * Validates login credentials against online PostgreSQL database
  * Expected body: { email, password }
  */
 const loginValidator = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    // Accept `username` or a generic `identifier` (username, nic, or tel)
+    const { username, identifier, password } = req.body;
 
-    // Validate input
-    if (!email || !password) {
+    // Validate input: require password and either username or identifier
+    if ((!username && !identifier) || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Email and password are required',
+        message: 'Username/identifier and password are required',
       });
     }
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid email format',
-      });
-    }
+    const searchValue = username || identifier;
+    console.log(`Attempting login for identifier: ${searchValue}`);
 
-    console.log(`Attempting login for email: ${email}`);
-
-    // Query: Find user by email from online PostgreSQL database
-    const user = await prisma.user.findUnique({
-      where: { email },
+    // Query: Find user by username, nic, or tel
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { username: searchValue },
+          { nic: searchValue },
+          { tel: searchValue },
+        ],
+      },
     });
 
     if (!user) {
-      console.log(`User not found: ${email}`);
+      console.log(`User not found: ${searchValue}`);
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password',
@@ -57,24 +63,24 @@ const loginValidator = async (req, res, next) => {
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
-      console.log(`Invalid password for user: ${email}`);
+      console.log(`Invalid password for user: ${searchValue}`);
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password',
       });
     }
 
-    console.log(`Login successful for user: ${email}`);
+    console.log(`Login successful for user: ${searchValue}`);
 
     // Generate JWT Token
     const token = jwt.sign(
       {
         id: user.id,
-        email: user.email,
+        username: user.username,
         role: user.role,
       },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRATION || '7d' }
+      JWT_SECRET,
+      { expiresIn: JWT_EXPIRATION }
     );
 
     // Update last login timestamp in database

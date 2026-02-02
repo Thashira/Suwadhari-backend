@@ -10,10 +10,10 @@ const prisma = new PrismaClient();
  */
 const registerValidator = async (req, res, next) => {
   try {
-    const { 
-      email, 
-      password, 
-      confirmPassword, 
+    const {
+      email,
+      password,
+      confirmPassword,
       name,
       physicianId,
       birthDay,
@@ -21,7 +21,7 @@ const registerValidator = async (req, res, next) => {
       username,
       addressId,
       tel,
-      role 
+      role
     } = req.body;
 
     // Validate required fields
@@ -122,6 +122,20 @@ const registerValidator = async (req, res, next) => {
 
     console.log(`Hashed password for new user: ${email}`);
 
+    // Validate and normalize role
+    const allowedRoles = ['doctor', 'hospital', 'patient', 'pharmacy'];
+    let normalizedRole = 'patient';
+    if (role) {
+      const r = String(role).toLowerCase();
+      if (!allowedRoles.includes(r)) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid role. Allowed roles: ${allowedRoles.join(', ')}`,
+        });
+      }
+      normalizedRole = r;
+    }
+
     // Attach sanitized data to request
     req.newUser = {
       email,
@@ -133,7 +147,7 @@ const registerValidator = async (req, res, next) => {
       username: username || null,
       addressId: addressId ? parseInt(addressId) : null,
       tel: tel || null,
-      role: role || 'user',
+      role: normalizedRole,
     };
 
     next();

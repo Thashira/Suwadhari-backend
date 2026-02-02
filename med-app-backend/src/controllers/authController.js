@@ -6,6 +6,13 @@ const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
 
+// Safe JWT fallbacks for development if env vars are not set
+const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_change_me';
+const JWT_EXPIRATION = process.env.JWT_EXPIRATION || '7d';
+if (!process.env.JWT_SECRET) {
+  console.warn('Warning: JWT_SECRET not set. Using development fallback secret.');
+}
+
 //doctor register
 // Register User (uses registerValidator middleware)
 const register = async (req, res) => {
@@ -104,7 +111,7 @@ const logout = async (req, res) => {
   try {
     // Optional: Add token to blacklist or database for invalidation
     // TODO: Implement token blacklist logic if needed
-    
+
     res.status(200).json({
       success: true,
       message: 'User logged out successfully',
@@ -119,8 +126,60 @@ const logout = async (req, res) => {
   }
 };
 
+// Create a test patient for quick testing
+const createTestPatient = async (req, res) => {
+  try {
+    const testEmail = 'test.patient@example.com';
+    const plainPassword = 'Testing@123';
+
+    // Check if test patient already exists
+    let user = await prisma.user.findUnique({ where: { email: testEmail } });
+
+    if (user) {
+      return res.status(200).json({
+        success: true,
+        message: 'Test patient already exists',
+        data: {
+          email: testEmail,
+          username: user.username || 'testing',
+        },
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(plainPassword, 10);
+
+    user = await prisma.user.create({
+      data: {
+        email: testEmail,
+        password: hashedPassword,
+        name: 'Test Patient',
+        username: 'testing',
+        role: 'patient',
+        isActive: true,
+      },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        role: true,
+        createdAt: true,
+      },
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: 'Test patient created',
+      data: { user, credentials: { email: testEmail, password: plainPassword } },
+    });
+  } catch (error) {
+    console.error('Create test patient error:', error);
+    res.status(500).json({ success: false, message: 'Error creating test patient', error: error.message });
+  }
+};
+
 module.exports = {
   register,
   login,
   logout,
+  createTestPatient,
 };
